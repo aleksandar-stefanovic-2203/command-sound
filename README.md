@@ -6,7 +6,8 @@ A [Visual Studio Code](https://code.visualstudio.com/) extension that plays a sh
 
 - **Success / failure feedback** — Uses `vscode.window.onDidEndTerminalShellExecution` so sounds align with the integrated terminal’s command result.
 - **Cross-platform playback** — macOS (`afplay`), Windows (PowerShell `SoundPlayer`), Linux (`paplay`).
-
+- **Configurable timeout** — Set maximum playback duration to prevent long sounds.
+- **Minimum interval control** — Prevent sound spam by setting minimum time between sounds.
 ## Requirements
 
 - **VS Code** `^1.110.0` or newer (API used for shell execution events).
@@ -22,7 +23,25 @@ A [Visual Studio Code](https://code.visualstudio.com/) extension that plays a sh
 2. Run commands in the integrated terminal as usual.
 3. When a command completes, you’ll hear the success or failure sound based on its exit code.
 
-No commands or settings are contributed yet; the behavior is always on after activation.
+### Configuration
+
+The extension provides several settings to customize behavior:
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `commandSound.enabled` | boolean | `true` | Enable or disable sound playback |
+| `commandSound.timeout` | number | `5` | Maximum time in seconds to play sounds before stopping |
+| `commandSound.minInterval` | number | `0.5` | Minimum time in seconds between playing sounds |
+
+You can configure these in VS Code Settings (search for "Command Sound") or in your `settings.json`:
+
+```json
+{
+  "commandSound.enabled": true,
+  "commandSound.timeout": 3,
+  "commandSound.minInterval": 1.0
+}
+```
 
 ## Development
 

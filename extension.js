@@ -1,5 +1,5 @@
 const vscode = require('vscode');
-const { exec } = require("child_process");
+const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
@@ -26,18 +26,27 @@ function activate(context) {
 		return;
 	}
 
+	let lastSoundTime = 0;
+
 	function playSound(soundPath) {
+		const timeoutMs = vscode.workspace.getConfiguration('commandSound').get('timeout') * 1000;
+
+		let command, args;
 		if (platform === "darwin") {
-			exec(`afplay "${soundPath}"`);
+			command = "afplay";
+			args = [soundPath];
+		} else if (platform === "win32") {
+			command = "powershell";
+			args = ["-c", `(New-Object Media.SoundPlayer "${soundPath}").PlaySync();`];
+		} else {
+			command = "paplay";
+			args = [soundPath];
 		}
 
-		else if (platform === "win32") {
-			exec(`powershell -c (New-Object Media.SoundPlayer "${soundPath}").PlaySync();`);
-		}
-
-		else {
-			exec(`paplay "${soundPath}"`);
-		}
+		const child = spawn(command, args);
+		setTimeout(() => {
+			child.kill();
+		}, timeoutMs);
 	}
 
 	if (!vscode.window.onDidEndTerminalShellExecution) {
@@ -45,17 +54,52 @@ function activate(context) {
 		return;
 	}
 
-	const disposable = vscode.window.onDidEndTerminalShellExecution((event) => {
-		if (event.exitCode === undefined) return;
+	let terminalDisposable = null;
 
-		if (event.exitCode === 0) {
-			playSound(successSound);
-		} else {
-			playSound(errorSound);
+	function registerListener() {
+		if (terminalDisposable) return;
+		terminalDisposable = vscode.window.onDidEndTerminalShellExecution((event) => {
+			if (event.exitCode === undefined) return;
+
+			const now = Date.now();
+			const minIntervalMs = vscode.workspace.getConfiguration('commandSound').get('minInterval') * 1000;
+			if (now - lastSoundTime < minIntervalMs) return;
+
+			lastSoundTime = now;
+
+			if (event.exitCode === 0) {
+				playSound(successSound);
+			} else {
+				playSound(errorSound);
+			}
+		});
+	}
+
+	function unregisterListener() {
+		if (terminalDisposable) {
+			terminalDisposable.dispose();
+			terminalDisposable = null;
 		}
-	});
+	}
 
-	context.subscriptions.push(disposable);
+	function setupListener() {
+		if (vscode.workspace.getConfiguration('commandSound').get('enabled')) {
+			registerListener();
+		} else {
+			unregisterListener();
+		}
+	}
+
+	setupListener();
+
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration((e) => {
+			if (e.affectsConfiguration('commandSound.enabled')) {
+				setupListener();
+			}
+		}),
+		{ dispose: unregisterListener }
+	);
 
 	console.log("Command Sound extension activated!");
 }
