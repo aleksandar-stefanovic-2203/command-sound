@@ -1,65 +1,52 @@
-# command-sound README
+# Command Sound
 
-This is the README for your extension "command-sound". After writing up a brief description, we recommend including the following sections.
+A [Visual Studio Code](https://code.visualstudio.com/) extension that plays a short sound when a terminal command finishes—one sound for success (exit code `0`) and another for failure (non-zero exit code).
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- **Success / failure feedback** — Uses `vscode.window.onDidEndTerminalShellExecution` so sounds align with the integrated terminal’s command result.
+- **Cross-platform playback** — macOS (`afplay`), Windows (PowerShell `SoundPlayer`), Linux (`paplay`).
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- **VS Code** `^1.110.0` or newer (API used for shell execution events).
+- **Audio files** in the extension folder:
+  - `audio/command_successful.wav`
+  - `audio/command_unsuccessful.wav`  
+  If either file is missing, the extension logs an error and does not register the listener.
+- **Linux:** `paplay` (often from the `pulseaudio-utils` package) must be available on your `PATH`.
 
-## Extension Settings
+## Usage
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+1. Enable the extension.
+2. Run commands in the integrated terminal as usual.
+3. When a command completes, you’ll hear the success or failure sound based on its exit code.
 
-For example:
+No commands or settings are contributed yet; the behavior is always on after activation.
 
-This extension contributes the following settings:
+## Development
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+| Script        | Description        |
+|---------------|--------------------|
+| `npm run lint` | Run ESLint         |
+| `npm test`     | Run extension tests |
 
-## Known Issues
+## Project structure
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+| Path | Role |
+|------|------|
+| `extension.js` | Activation, terminal listener, sound playback |
+| `audio/` | `command_successful.wav`, `command_unsuccessful.wav` |
 
-## Release Notes
+## Known limitations
 
-Users appreciate release notes as you update your extension.
+- Sounds are played via external tools; path or quoting issues on unusual setups may affect playback.
+- Very old VS Code builds without `onDidEndTerminalShellExecution` are unsupported.
 
-### 1.0.0
+## Release notes
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+See [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Publisher:** aleksandar-stefanovic
